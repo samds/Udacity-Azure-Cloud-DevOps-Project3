@@ -29,7 +29,7 @@ stages:
   - deployment: FakeRestAPI
     pool:
       vmImage: 'ubuntu-18.04'
-    environment: 'TEST'
+    environment: $(environment-name)
     strategy:
       runOnce:
         deploy:
@@ -37,8 +37,8 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App'
             inputs:
-              azureSubscription: 'terraform'
-              appName: '$(app-name)'
+              azureSubscription: '$(arm-resource-connection-name)'
+              appName: '$(app-service-name)'
               appType: webApp
               package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
   - deployment: VMDeploy
