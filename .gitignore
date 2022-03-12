@@ -1,0 +1,8 @@
+*.tfstate
+*.lock.hcl
+tfstate_storage.sh
+
+.env/
+.terraform/
+.git/
+

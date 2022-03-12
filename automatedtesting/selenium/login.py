@@ -13,6 +13,6 @@ def login (user, password):
     driver = webdriver.Chrome()
     print ('Browser started successfully. Navigating to the demo page to login.')
     driver.get('https://www.saucedemo.com/')
+    return driver
 
-login('standard_user', 'secret_sauce')
-
+driver = login('standard_user', 'secret_sauce')
