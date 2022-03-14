@@ -15,6 +15,11 @@ stages:
       displayName: 'Download terraform.tfvars'
       inputs:
         secureFile: 'terraform.tfvars'
+    - task: InstallSSHKey@0
+      inputs:
+        knownHostsEntry: ''
+        sshPublicKey: '$(myPubKey)'
+        sshKeySecureFile: 'id_rsa'
     - task: Bash@3
       displayName: 'Create Resources'
       inputs:
