@@ -2,6 +2,30 @@ name: Azure Pipelines
 variables:
   python.version: '3.7.6'
 stages:
+- stage: Terraform
+  variables:
+  - group: terraform
+  jobs:
+  - job: Build
+    pool:
+      vmImage: 'ubuntu-18.04'
+    steps:
+    - task: DownloadSecureFile@1
+      name: tfvars
+      displayName: 'Download terraform.tfvars'
+      inputs:
+        secureFile: 'terraform.tfvars'
+    - task: Bash@3
+      displayName: 'Create Resources'
+      inputs:
+        targetType: 'inline'
+        script: |
+          cd $(System.DefaultWorkingDirectory)/terraform/environments/test
+          cp $(tfvars.secureFilePath) .
+          export ARM_ACCESS_KEY=$(AccessKey)
+          terraform init
+          terraform plan -out "terraform.plan"
+          terraform apply "terraform.plan"
 - stage: Build
   jobs:
   - job: Build
