@@ -92,7 +92,7 @@ stages:
       pool:
         vmImage: "ubuntu-20.04"
       steps:
-      - bash: 'newman run $(System.DefaultWorkingDirectory)/automatedtesting/postman/StarterAPIs.json --reporters junit --reporter-junit-export $(System.DefaultWorkingDirectory)/report.xml'
+      - bash: 'newman run $(System.DefaultWorkingDirectory)/automatedtesting/postman/StarterAPIs.json --reporters cli,junit --reporter-junit-export $(System.DefaultWorkingDirectory)/report.xml'
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: 'JUnit'
