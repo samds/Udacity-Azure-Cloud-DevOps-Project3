@@ -1,95 +1,87 @@
 name: Azure Pipelines
 variables:
-  python.version: '3.7.6'
+  python.version: "3.7.6"
 stages:
-- stage: Terraform
-  variables:
-  - group: terraform
-  jobs:
-  - job: Build
-    pool:
-      vmImage: 'ubuntu-18.04'
-    steps:
-    - task: DownloadSecureFile@1
-      name: tfvars
-      displayName: 'Download terraform.tfvars'
-      inputs:
-        secureFile: 'terraform.tfvars'
-    - task: InstallSSHKey@0
-      inputs:
-        knownHostsEntry: 'AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAIOp1HNUkRCW742UW58dbvCOLEMjyUDyf48rct62McrFsOp1RCuHwdAI8ATPIsM3PX+ECb1c8r3Oiz/15WzyfM='
-        sshPublicKey: '$(myPubKey)'
-        sshKeySecureFile: 'id_rsa'
-    - task: Bash@3
-      displayName: 'Create Resources'
-      inputs:
-        targetType: 'inline'
-        script: |
-          cd $(System.DefaultWorkingDirectory)/terraform/environments/test
-          cp $(tfvars.secureFilePath) .
-          export ARM_ACCESS_KEY=$(AccessKey)
-          terraform init
-          terraform plan -out "terraform.plan"
-          terraform apply "terraform.plan"
-- stage: Build
-  jobs:
-  - job: Build
-    pool:
-      vmImage: 'ubuntu-18.04'
-    steps:
-    # Needed for Terraform VM deployment
-    # - task: InstallSSHKey@0
-    #   inputs:
-    #     knownHostsEntry: 'KNOWN_HOSTS_STRING'
-    #     sshPublicKey: 'PUBLIC_KEY'
-    #     sshKeySecureFile: 'id_rsa'
-    - task: ArchiveFiles@2
-      displayName: 'Archive FakeRestAPI'
-      inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/fakerestapi'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip'
-    - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip
-      displayName: 'Upload Package'
-      artifact: drop-fakerestapi
-- stage:
-  jobs:
-  - deployment: FakeRestAPI
-    pool:
-      vmImage: 'ubuntu-18.04'
-    environment: $(environment-name)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App'
+  - stage: Terraform
+    variables:
+      - group: terraform
+    jobs:
+      - job: Build
+        pool:
+          vmImage: "ubuntu-18.04"
+        steps:
+          - task: DownloadSecureFile@1
+            name: tfvars
+            displayName: "Download variable definitions (.tfvars) file"
             inputs:
-              azureSubscription: '$(arm-service-connection-name)'
-              appName: '$(app-service-name)'
-              appType: webApp
-              package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
-  - deployment: VMDeploy
-    displayName: NAME
-    environment:
-      name: $(environment-name)
-      resourceType: VirtualMachine
-    strategy:
-      runOnce:
-        deploy:
-           steps:
-           - task: Bash@3
-             inputs:
-               targetType: 'inline'
-               script: |
-                 #! /bin/bash
-               
-                 sudo apt-get upgrade -y
-                 sudo apt-get install python3-pip -y
-                 sudo apt-get install unzip -y
-                 sudo apt-get install -y chromium-browser
-                 pip3 install selenium
-                 export PATH=$PATH:some/path
+              secureFile: "terraform.tfvars"
+          - task: InstallSSHKey@0
+            inputs:
+              knownHostsEntry: "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAIOp1HNUkRCW742UW58dbvCOLEMjyUDyf48rct62McrFsOp1RCuHwdAI8ATPIsM3PX+ECb1c8r3Oiz/15WzyfM="
+              sshPublicKey: "$(myPubKey)"
+              sshKeySecureFile: "id_rsa"
+          - task: Bash@3
+            displayName: "Create Resources"
+            inputs:
+              targetType: "inline"
+              script: |
+                cd $(System.DefaultWorkingDirectory)/terraform/environments/test
+                cp $(tfvars.secureFilePath) .
+                export ARM_ACCESS_KEY=$(AccessKey)
+                terraform init
+                terraform plan -out "terraform.plan" -var="public_key_file=/home/vsts/work/_temp/id_rsa.pub"
+                terraform apply "terraform.plan" -var="public_key_file=/home/vsts/work/_temp/id_rsa.pub"
+  - stage: Build
+    jobs:
+      - job: Build
+        pool:
+          vmImage: "ubuntu-18.04"
+        steps:
+          - task: ArchiveFiles@2
+            displayName: "Archive FakeRestAPI"
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)/fakerestapi"
+              includeRootFolder: false
+              archiveType: "zip"
+              archiveFile: "$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip"
+          - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip
+            displayName: "Upload Package"
+            artifact: drop-fakerestapi
+  - stage:
+    jobs:
+      - deployment: FakeRestAPI
+        pool:
+          vmImage: "ubuntu-18.04"
+        environment: $(environment-name)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  displayName: "Deploy Azure Web App"
+                  inputs:
+                    azureSubscription: "$(arm-service-connection-name)"
+                    appName: "$(app-service-name)"
+                    appType: webApp
+                    package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
+      - deployment: VMDeploy
+        displayName: NAME
+        environment:
+          name: $(environment-name)
+          resourceType: VirtualMachine
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: Bash@3
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      #! /bin/bash
 
-
+                      sudo apt-get upgrade -y
+                      sudo apt-get install python3-pip -y
+                      sudo apt-get install unzip -y
+                      sudo apt-get install -y chromium-browser
+                      pip3 install selenium
+                      export PATH=$PATH:some/path
