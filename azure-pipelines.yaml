@@ -2,11 +2,11 @@ name: Azure Pipelines
 variables:
   python.version: "3.7.6"
 stages:
-  - stage: Terraform
+  - stage: Infrastructure
     variables:
       - group: terraform
     jobs:
-      - job: Build
+      - job: Terraform
         pool:
           vmImage: "ubuntu-18.04"
         steps:
@@ -30,7 +30,7 @@ stages:
                 export ARM_ACCESS_KEY=$(AccessKey)
                 terraform init
                 terraform plan -out "terraform.plan" -var="public_key_file=/home/vsts/work/_temp/id_rsa.pub"
-                terraform apply "terraform.plan" -var="public_key_file=/home/vsts/work/_temp/id_rsa.pub"
+                terraform apply "terraform.plan"
   - stage: Build
     jobs:
       - job: Build
