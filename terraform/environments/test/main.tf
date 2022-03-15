@@ -3,6 +3,7 @@ provider "azurerm" {
   subscription_id = var.subscription_id
   client_id       = var.client_id
   client_secret   = var.client_secret
+  public_key_file = var.public_key_file
   features {}
 }
 terraform {
@@ -58,4 +59,5 @@ module "vm" {
   resource_group       = module.resource_group.resource_group_name
   public_ip_address_id = module.publicip.public_ip_address_id
   subnet_id            = module.network.subnet_id
+  public_key_file      = var.public_key_file
 }
