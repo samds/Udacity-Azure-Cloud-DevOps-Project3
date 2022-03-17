@@ -7,6 +7,8 @@ stages:
       - group: terraform
       - name: postman_dir
         value: $(System.DefaultWorkingDirectory)/automatedtesting/postman
+      - name: selenium_dir
+        value: $(System.DefaultWorkingDirectory)/automatedtesting/selenium
     jobs:
       - job: Terraform
         pool:
@@ -91,6 +93,7 @@ stages:
     jobs:
       - job: Postman
         displayName: API-integration Tests
+        continueOnError: true
         pool:
           vmImage: "ubuntu-20.04"
         steps:
@@ -103,3 +106,13 @@ stages:
               testRunTitle: "Integration Tests"
           - bash: "newman run $(postman_dir)/data_validation_test_suite.postman_collection.json -e $(postman_dir)/my.postman_environment.json"
             displayName: Run Data Validation Test Suite
+      - job: Selenium
+        displayName: Functional UI Test
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: "inline"
+              script: |
+                cd $(selenium_dir)
+                pip install -r requirements.txt
+                python3 login.py
