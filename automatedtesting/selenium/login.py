@@ -10,7 +10,7 @@ def log(text):
 
 url = 'https://www.saucedemo.com/'
 log('Starting the browser...')
-driver = webdriver.Chrome()
+# driver = webdriver.Chrome()
 # --uncomment when running in Azure DevOps.
 options = ChromeOptions()
 options.add_argument("--headless") 

@@ -101,11 +101,13 @@ stages:
           - bash: |
               newman run "$POSTMAN_DIR/regression_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json" --reporters cli,junit --reporter-junit-export "$SYSTEM_DEFAULTWORKINGDIRECTORY/report.xml"
             displayName: Run Regression Test Suite
+            continueOnError: true
           - task: PublishTestResults@2
             inputs:
               testResultsFormat: "JUnit"
               testResultsFiles: "**/report.xml"
               testRunTitle: "Integration Tests"
+            continueOnError: true
           - bash: |
               newman run "$POSTMAN_DIR/data_validation_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json"
             displayName: Run Data Validation Test Suite
