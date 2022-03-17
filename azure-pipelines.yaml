@@ -5,10 +5,6 @@ stages:
   - stage: Infrastructure
     variables:
       - group: terraform
-      - name: postman_dir
-        value: $(System.DefaultWorkingDirectory)/automatedtesting/postman
-      - name: selenium_dir
-        value: $(System.DefaultWorkingDirectory)/automatedtesting/selenium
     jobs:
       - job: Terraform
         pool:
@@ -90,6 +86,11 @@ stages:
                       pip3 install selenium
                       export PATH=$PATH:some/path
   - stage: Test
+    variables:
+      - name: postman_dir
+        value: $(System.DefaultWorkingDirectory)/automatedtesting/postman
+      - name: selenium_dir
+        value: $(System.DefaultWorkingDirectory)/automatedtesting/selenium
     jobs:
       - job: Postman
         displayName: API-integration Tests
@@ -97,14 +98,16 @@ stages:
         pool:
           vmImage: "ubuntu-20.04"
         steps:
-          - bash: "newman run $POSTMAN_DIR/regression_test_suite.postman_collection.json -e $POSTMAN_DIR/my.postman_environment.json --reporters cli,junit --reporter-junit-export $SYSTEM_DEFAULTWORKINGDIRECTORY/report.xml"
+          - bash: |
+              newman run "$POSTMAN_DIR/regression_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json" --reporters cli,junit --reporter-junit-export "$SYSTEM_DEFAULTWORKINGDIRECTORY/report.xml"
             displayName: Run Regression Test Suite
           - task: PublishTestResults@2
             inputs:
               testResultsFormat: "JUnit"
               testResultsFiles: "**/report.xml"
               testRunTitle: "Integration Tests"
-          - bash: "newman run $POSTMAN_DIR/data_validation_test_suite.postman_collection.json -e $POSTMAN_DIR/my.postman_environment.json"
+          - bash: |
+              newman run "$POSTMAN_DIR/data_validation_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json"
             displayName: Run Data Validation Test Suite
       - job: Selenium
         displayName: Functional UI Test
@@ -114,6 +117,6 @@ stages:
             inputs:
               targetType: "inline"
               script: |
-                cd $SELENIUM_DIR
+                cd "$SELENIUM_DIR"
                 pip install -r requirements.txt
                 python3 login.py
