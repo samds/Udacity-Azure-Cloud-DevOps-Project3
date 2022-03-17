@@ -97,22 +97,23 @@ stages:
         pool:
           vmImage: "ubuntu-20.04"
         steps:
-          - bash: "newman run $(postman_dir)/regression_test_suite.postman_collection.json -e $(postman_dir)/my.postman_environment.json --reporters cli,junit --reporter-junit-export $(System.DefaultWorkingDirectory)/report.xml"
+          - bash: "newman run $POSTMAN_DIR/regression_test_suite.postman_collection.json -e $POSTMAN_DIR/my.postman_environment.json --reporters cli,junit --reporter-junit-export $SYSTEM_DEFAULTWORKINGDIRECTORY/report.xml"
             displayName: Run Regression Test Suite
           - task: PublishTestResults@2
             inputs:
               testResultsFormat: "JUnit"
               testResultsFiles: "**/report.xml"
               testRunTitle: "Integration Tests"
-          - bash: "newman run $(postman_dir)/data_validation_test_suite.postman_collection.json -e $(postman_dir)/my.postman_environment.json"
+          - bash: "newman run $POSTMAN_DIR/data_validation_test_suite.postman_collection.json -e $POSTMAN_DIR/my.postman_environment.json"
             displayName: Run Data Validation Test Suite
       - job: Selenium
         displayName: Functional UI Test
+        continueOnError: true
         steps:
           - task: Bash@3
             inputs:
               targetType: "inline"
               script: |
-                cd $(selenium_dir)
+                cd $SELENIUM_DIR
                 pip install -r requirements.txt
                 python3 login.py
