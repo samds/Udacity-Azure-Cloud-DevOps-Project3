@@ -1,4 +1,9 @@
 name: Azure Pipelines
+trigger:
+  branches:
+    include:
+      - main
+      - master
 variables:
   python.version: "3.7.6"
 stages:
@@ -121,6 +126,9 @@ stages:
       - deployment: Selenium
         displayName: Functional UI Test
         continueOnError: true
+        environment:
+          name: $(environment-name)
+          resourceType: VirtualMachine
         strategy:
           runOnce:
             deploy:
