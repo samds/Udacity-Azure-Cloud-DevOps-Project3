@@ -69,8 +69,7 @@ stages:
                     appName: "$(app-service-name)"
                     appType: webApp
                     package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
-      - deployment: VMDeploy
-        displayName: Selenium
+      - deployment: Selenium
         environment:
           name: $(environment-name)
           resourceType: VirtualMachine
@@ -92,7 +91,6 @@ stages:
                       sudo apt-get install -y chromium-chromedriver
                       python3 -m pip install --upgrade pip
                       pip3 install selenium
-
   - stage: Test
     variables:
       - name: postman_dir
@@ -128,7 +126,7 @@ stages:
               newman run "$POSTMAN_DIR/data_validation_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json" --suppress-exit-code
             displayName: Run Data Validation Test Suite
       - deployment: Selenium
-        displayName: Functional UI Test
+        displayName: Functional UI Tests
         continueOnError: true
         environment:
           name: $(environment-name)
@@ -148,7 +146,7 @@ stages:
                       python3 login.py > $SELENIUM_LOG_DIR/functional-tests-$BUILD_BUILDID.log
                 - task: PublishPipelineArtifact@1
                   inputs:
-                    targetPath: "$(selenium_log_dir)/functional-tests-$BUILD_BUILDID.log"
+                    targetPath: "$(selenium_log_dir)/functional-tests-$(Build.BuildId).log"
                     artifact: "selenium-logs"
                     publishLocation: "pipeline"
       - job: JMeter
