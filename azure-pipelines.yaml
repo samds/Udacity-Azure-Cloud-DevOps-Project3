@@ -103,6 +103,8 @@ stages:
         value: $(System.DefaultWorkingDirectory)/automatedtesting/jmeter
       - name: jmeter_log_dir
         value: $(Build.ArtifactStagingDirectory)/jmeter_logs
+      - name: selenium_log_dir
+        value: $(Build.ArtifactStagingDirectory)/selenium_logs
       - name: jmeter_app_name
         value: apache-jmeter-5.4.3
     jobs:
@@ -142,7 +144,13 @@ stages:
                     script: |
                       #! /bin/bash
                       cd "$SELENIUM_DIR"
-                      python3 login.py
+                      mkdir $SELENIUM_LOG_DIR
+                      python3 login.py > $SELENIUM_LOG_DIR/functional-tests-$BUILD_BUILDID.log
+                - task: PublishPipelineArtifact@1
+                  inputs:
+                    targetPath: "$(selenium_log_dir)/functional-tests-$BUILD_BUILDID.log"
+                    artifact: "selenium-logs"
+                    publishLocation: "pipeline"
       - job: JMeter
         displayName: Performance Tests
         continueOnError: true
