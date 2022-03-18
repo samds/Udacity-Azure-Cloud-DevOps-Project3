@@ -65,7 +65,7 @@ stages:
                     appType: webApp
                     package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
       - deployment: VMDeploy
-        displayName: NAME
+        displayName: Selenium
         environment:
           name: $(environment-name)
           resourceType: VirtualMachine
@@ -78,13 +78,14 @@ stages:
                     targetType: "inline"
                     script: |
                       #! /bin/bash
-
                       sudo apt-get upgrade -y
                       sudo apt-get install python3-pip -y
                       sudo apt-get install unzip -y
                       sudo apt-get install -y chromium-browser
+                      sudo apt-get install -y chromium-chromedriver
+                      python3 -m pip install --upgrade pip
                       pip3 install selenium
-                      export PATH=$PATH:some/path
+
   - stage: Test
     variables:
       - name: postman_dir
@@ -117,17 +118,21 @@ stages:
           - bash: |
               newman run "$POSTMAN_DIR/data_validation_test_suite.postman_collection.json" -e "$POSTMAN_DIR/my.postman_environment.json" --suppress-exit-code
             displayName: Run Data Validation Test Suite
-      - job: Selenium
+      - deployment: Selenium
         displayName: Functional UI Test
         continueOnError: true
-        steps:
-          - task: Bash@3
-            inputs:
-              targetType: "inline"
-              script: |
-                cd "$SELENIUM_DIR"
-                pip install -r requirements.txt
-                python3 login.py
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: Bash@3
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      #! /bin/bash
+                      cd "$SELENIUM_DIR"
+                      python3 login.py
       - job: JMeter
         displayName: Performance Tests
         continueOnError: true
