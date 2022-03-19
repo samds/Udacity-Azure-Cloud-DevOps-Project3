@@ -143,7 +143,7 @@ stages:
                       #! /bin/bash
                       cd "$SELENIUM_DIR"
                       mkdir $SELENIUM_LOG_DIR
-                      python3 login.py > $SELENIUM_LOG_DIR/functional-tests-$BUILD_BUILDID.log
+                      python3 login.py 2>&1 | tee $SELENIUM_LOG_DIR/functional-tests-$BUILD_BUILDID.log
                 - task: PublishPipelineArtifact@1
                   inputs:
                     targetPath: "$(selenium_log_dir)/functional-tests-$(Build.BuildId).log"
